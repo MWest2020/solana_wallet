@@ -2,7 +2,16 @@
 import React, { useState, ReactElement } from "react";
 import { message } from "antd";
 import { useGlobalState } from "../../context";
-import { clusterApiUrl, Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { 
+  clusterApiUrl, 
+  Connection, 
+  LAMPORTS_PER_SOL,
+  Transaction,
+  SystemProgram,
+  sendAndConfirmTransaction,
+  PublicKey
+} from "@solana/web3.js";
+
 const converter = require("number-to-words");
 import { LoadingOutlined } from "@ant-design/icons";
 import { refreshBalance } from "../../utils";
@@ -18,6 +27,7 @@ import {
   AmountText,
   RatioText,
 } from "../../styles/StyledComponents.styles";
+
 
 type FormT = {
   from: string;
@@ -87,7 +97,12 @@ const TransactionModal = (): ReactElement => {
       // Documentation Reference:
       //   https://solana-labs.github.io/solana-web3.js/interfaces/Signer.html
       //   note: signers is an array with a single item - an object with two properties
-      const signers = [{}];
+      const signers = [
+        {
+        publicKey: account.publicKey,
+        secretKey: account.secretKey
+        }
+      ];
 
       setSending(true);
       // (f) send the transaction and await its confirmation
@@ -98,14 +113,14 @@ const TransactionModal = (): ReactElement => {
         signers
       );
       setTransactionSig(confirmation);
-      setSending(false);
-
-      if (network) {
-        const updatedBalance = await refreshBalance(network, account);
-        setBalance(updatedBalance);
-        message.success(`Transaction confirmed`);
-      }
-      // (g) You can now delete the console.log statement since the function is implemented!
+      setSending(true);
+      
+      const updatedBalance = await refreshBalance(network, account);
+      setBalance(updatedBalance);
+      message.success(`Transaction confirmed`);
+      // if (network) {
+      // }
+      
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown Error";
